@@ -6,6 +6,7 @@ plugins {
 	kotlin("plugin.jpa") version "2.3.21"
 }
 
+
 group = "br.com.lojainteligente"
 version = "0.0.1-SNAPSHOT"
 
