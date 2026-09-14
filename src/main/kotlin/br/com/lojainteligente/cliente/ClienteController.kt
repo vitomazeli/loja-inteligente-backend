@@ -1,7 +1,5 @@
-package br.com.lojainteligente.controller
+package br.com.lojainteligente.cliente
 
-import br.com.lojainteligente.entity.Cliente
-import br.com.lojainteligente.service.ClienteService
 import org.springframework.web.bind.annotation.*
 
 @RestController

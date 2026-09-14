@@ -1,8 +1,6 @@
-package br.com.lojainteligente.service
+package br.com.lojainteligente.cliente
 
 
-import br.com.lojainteligente.entity.Cliente
-import br.com.lojainteligente.repository.ClienteRepository
 import org.springframework.stereotype.Service
 
 @Service

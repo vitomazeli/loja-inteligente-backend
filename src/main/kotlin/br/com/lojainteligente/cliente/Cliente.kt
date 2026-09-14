@@ -1,4 +1,4 @@
-package br.com.lojainteligente.entity
+package br.com.lojainteligente.cliente
 
 import jakarta.persistence.*
 
