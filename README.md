@@ -1,8 +1,20 @@
+Claro — agora o README já pode refletir o estado atual do backend, com os **4 CRUDs completos** e deixando claro que **JWT e MQTT são as próximas etapas**.
+
+Você pode substituir seu `README.md` por este:
+
+```markdown
 # 🛒 Loja Inteligente - Backend
 
 Backend do projeto **Loja Inteligente**, desenvolvido em **Kotlin com Spring Boot**.
 
-O projeto faz parte de uma aplicação multiplataforma para gerenciamento de uma loja inteligente. Nesta etapa estão implementados os CRUDs de **Categorias** e **Produtos**, utilizando uma API REST e banco de dados SQLite.
+Nesta etapa do projeto foram implementados os CRUDs completos de:
+
+- Categorias
+- Produtos
+- Clientes
+- Vendas
+
+A aplicação disponibiliza uma **API REST**, utiliza **Spring Data JPA / Hibernate** para persistência e **SQLite** como banco de dados.
 
 ---
 
@@ -16,51 +28,143 @@ O projeto faz parte de uma aplicação multiplataforma para gerenciamento de uma
 - Hibernate
 - SQLite
 - Gradle
-- Spring Security
 - Jakarta Validation
+- Spring Security
 - REST API
 
 ---
 
-## 📌 Funcionalidades implementadas
+# 📌 Funcionalidades implementadas
 
-Atualmente o backend possui dois CRUDs completos:
+Atualmente o backend possui **4 CRUDs completos**, atendendo às operações:
 
-### Categorias
+- Create
+- Read
+- Update
+- Delete
 
-Permite:
+Os CRUDs implementados são:
 
-- Criar uma categoria
-- Listar categorias
-- Buscar uma categoria por ID
-- Atualizar uma categoria
-- Excluir uma categoria
+### 📁 Categorias
 
-### Produtos
+Permite cadastrar e gerenciar as categorias dos produtos da loja.
 
-Permite:
+Exemplos:
 
-- Criar um produto
-- Listar produtos
-- Buscar um produto por ID
-- Atualizar um produto
-- Excluir um produto
+- Eletrônicos
+- Informática
+- Alimentos
+- Limpeza
 
-Cada produto pertence a uma categoria.
+---
+
+### 📦 Produtos
+
+Permite cadastrar e gerenciar produtos.
+
+Cada produto possui uma categoria associada.
 
 Exemplo:
 
 ```text
 Categoria: Eletrônicos
 │
-├── Mouse
-├── Teclado
+├── Mouse Gamer
+├── Teclado Mecânico
 └── Notebook
-````
+```
 
 ---
 
-## 🗂️ Estrutura do projeto
+### 👤 Clientes
+
+Permite cadastrar e gerenciar clientes da loja.
+
+Cada cliente possui:
+
+- ID
+- Nome
+- E-mail
+
+O e-mail é utilizado como informação única para evitar cadastros duplicados.
+
+---
+
+### 🧾 Vendas
+
+Permite registrar e gerenciar vendas.
+
+Uma venda possui:
+
+- Cliente
+- Data da venda
+- Produtos
+- Quantidades
+- Preço unitário
+- Subtotal de cada item
+- Valor total
+
+Uma venda pode possuir vários produtos através da entidade `ItemVenda`.
+
+Exemplo:
+
+```text
+Venda #1
+│
+├── Cliente: Maria Silva
+│
+├── 2x Mouse Gamer
+│
+├── 1x Teclado Mecânico
+│
+└── Total: R$ 579,70
+```
+
+O valor da venda é calculado automaticamente pelo backend a partir do preço dos produtos.
+
+---
+
+# 🏗️ Arquitetura do backend
+
+O projeto segue uma arquitetura organizada em camadas:
+
+```text
+Requisição HTTP
+      ↓
+Controller
+      ↓
+Service
+      ↓
+Repository
+      ↓
+JPA / Hibernate
+      ↓
+SQLite
+```
+
+## Controller
+
+Responsável por disponibilizar os endpoints REST e receber as requisições HTTP.
+
+## Service
+
+Responsável pelas regras de negócio da aplicação.
+
+## Repository
+
+Responsável pela comunicação com o banco de dados utilizando Spring Data JPA.
+
+## Entity
+
+Representa as entidades e tabelas do banco de dados.
+
+## DTO
+
+Responsável pelos dados de entrada e saída da API.
+
+---
+
+# 🗂️ Estrutura do projeto
 
 ```text
 src/main/kotlin/br/com/lojainteligente
@@ -83,6 +187,27 @@ src/main/kotlin/br/com/lojainteligente
 │       ├── ProdutoRequest.kt
 │       └── ProdutoResponse.kt
 │
+├── cliente
+│   ├── Cliente.kt
+│   ├── ClienteRepository.kt
+│   ├── ClienteService.kt
+│   ├── ClienteController.kt
+│   └── dto
+│       ├── ClienteRequest.kt
+│       └── ClienteResponse.kt
+│
+├── venda
+│   ├── Venda.kt
+│   ├── ItemVenda.kt
+│   ├── VendaRepository.kt
+│   ├── VendaService.kt
+│   ├── VendaController.kt
+│   └── dto
+│       ├── VendaRequest.kt
+│       ├── VendaResponse.kt
+│       ├── ItemVendaRequest.kt
+│       └── ItemVendaResponse.kt
+│
 ├── config
 │   └── SecurityConfig.kt
 │
@@ -91,23 +216,23 @@ src/main/kotlin/br/com/lojainteligente
 
 ---
 
-## 🗄️ Banco de dados
+# 🗄️ Banco de dados
 
 O projeto utiliza **SQLite**.
 
-O arquivo do banco é criado automaticamente na raiz do projeto:
+O banco é armazenado no arquivo:
 
 ```text
 loja_inteligente.db
 ```
 
-A conexão é configurada no arquivo:
+A configuração está localizada em:
 
 ```text
 src/main/resources/application.properties
 ```
 
-Exemplo de configuração:
+Exemplo:
 
 ```properties
 spring.datasource.url=jdbc:sqlite:loja_inteligente.db
@@ -120,7 +245,53 @@ spring.jpa.show-sql=true
 server.port=8082
 ```
 
-O Hibernate cria e atualiza as tabelas automaticamente durante o desenvolvimento.
+Durante o desenvolvimento, o Hibernate cria e atualiza automaticamente as tabelas através da configuração:
+
+```properties
+spring.jpa.hibernate.ddl-auto=update
+```
+
+---
+
+# 🔗 Relacionamento entre as entidades
+
+O modelo atual possui os seguintes relacionamentos:
+
+```text
+Categoria
+    │
+    │ 1:N
+    ▼
+ Produto
+    │
+    │ 1:N
+    ▼
+ItemVenda
+    ▲
+    │
+    │ 1:N
+  Venda
+    ▲
+    │
+    │ N:1
+ Cliente
+```
+
+De forma simplificada:
+
+```text
+Categoria → Produto → ItemVenda ← Venda ← Cliente
+```
+
+Uma categoria pode possuir vários produtos.
+
+Um produto pertence a uma categoria.
+
+Uma venda pertence a um cliente.
+
+Uma venda pode possuir vários itens.
+
+Cada item de venda referencia um produto.
 
 ---
 
@@ -128,24 +299,23 @@ O Hibernate cria e atualiza as tabelas automaticamente durante o desenvolvimento
 
 ## Pré-requisitos
 
-Para executar o projeto é necessário possuir:
+É necessário possuir:
 
-* Java JDK 21
-* Git
-* IntelliJ IDEA ou outra IDE compatível com Kotlin
-* Postman ou Insomnia para testar a API
+- Java JDK 21
+- Git
+- IntelliJ IDEA ou outra IDE compatível com Kotlin
 
-Não é necessário instalar o Gradle separadamente, pois o projeto possui **Gradle Wrapper**.
+Não é necessário instalar o Gradle separadamente, pois o projeto utiliza o **Gradle Wrapper**.
 
 ---
 
-## 1. Clone o repositório
+## 1. Clonar o repositório
 
 ```bash
 git clone https://github.com/vitomazeli/loja-inteligente-backend.git
 ```
 
-Entre na pasta do projeto:
+Entre na pasta:
 
 ```bash
 cd loja-inteligente-backend
@@ -153,7 +323,7 @@ cd loja-inteligente-backend
 
 ---
 
-## 2. Verifique a versão do Java
+## 2. Verificar a versão do Java
 
 Execute:
 
@@ -161,45 +331,35 @@ Execute:
 java -version
 ```
 
-O projeto utiliza **Java 21**.
-
-Exemplo:
+O projeto utiliza:
 
 ```text
-java version "21"
+Java 21
 ```
 
-Também é possível verificar qual JVM o Gradle está utilizando:
-
-### Windows
+No Windows também é possível verificar a JVM utilizada pelo Gradle:
 
 ```powershell
 .\gradlew.bat --version
 ```
 
-### Linux/macOS
-
-```bash
-./gradlew --version
-```
-
 ---
 
-## 3. Faça o build do projeto
+## 3. Fazer o build
 
-No Windows:
+### Windows
 
 ```powershell
 .\gradlew.bat clean build
 ```
 
-No Linux/macOS:
+### Linux / macOS
 
 ```bash
 ./gradlew clean build
 ```
 
-Se tudo estiver configurado corretamente, deverá aparecer:
+Se tudo estiver configurado corretamente:
 
 ```text
 BUILD SUCCESSFUL
@@ -207,35 +367,41 @@ BUILD SUCCESSFUL
 
 ---
 
-## 4. Execute a aplicação
+## 4. Executar o backend
 
-No Windows:
+### Windows
 
 ```powershell
 .\gradlew.bat bootRun
 ```
 
-No Linux/macOS:
+### Linux / macOS
 
 ```bash
 ./gradlew bootRun
 ```
 
-A aplicação será iniciada em:
+O servidor será iniciado na porta:
+
+```text
+8082
+```
+
+URL base:
 
 ```text
 http://localhost:8082
 ```
 
-Quando aparecer uma mensagem semelhante a:
+Quando aparecer:
 
 ```text
 Tomcat started on port 8082
 ```
 
-o backend estará em execução.
+a API estará pronta para uso.
 
-Para interromper o servidor:
+Para interromper a aplicação:
 
 ```text
 Ctrl + C
@@ -243,11 +409,11 @@ Ctrl + C
 
 ---
 
-# 📡 Endpoints da API
+# 📡 Endpoints
 
-## Categorias
+## 📁 Categorias
 
-### Criar categoria
+### Criar
 
 ```http
 POST /api/categorias
@@ -263,20 +429,9 @@ Exemplo:
 }
 ```
 
-Resposta esperada:
-
-```json
-{
-  "id": 1,
-  "nome": "Eletrônicos",
-  "descricao": "Produtos eletrônicos da loja",
-  "ativo": true
-}
-```
-
 ---
 
-### Listar categorias
+### Listar
 
 ```http
 GET /api/categorias
@@ -284,99 +439,54 @@ GET /api/categorias
 
 ---
 
-### Buscar categoria por ID
+### Buscar por ID
 
 ```http
 GET /api/categorias/{id}
 ```
 
-Exemplo:
-
-```http
-GET /api/categorias/1
-```
-
 ---
 
-### Atualizar categoria
+### Atualizar
 
 ```http
 PUT /api/categorias/{id}
 ```
 
-Exemplo:
-
-```json
-{
-  "nome": "Eletrônicos e Informática",
-  "descricao": "Eletrônicos, computadores e periféricos",
-  "ativo": true
-}
-```
-
 ---
 
-### Excluir categoria
+### Excluir
 
 ```http
 DELETE /api/categorias/{id}
-```
-
-Exemplo:
-
-```http
-DELETE /api/categorias/1
-```
-
-Em caso de sucesso:
-
-```text
-204 No Content
 ```
 
 ---
 
 # 📦 Produtos
 
-## Criar produto
+## Criar
 
 ```http
 POST /api/produtos
 ```
-
-Antes de cadastrar um produto é necessário possuir uma categoria cadastrada.
 
 Exemplo:
 
 ```json
 {
   "nome": "Mouse Gamer",
-  "descricao": "Mouse gamer RGB com 6 botões",
+  "descricao": "Mouse gamer RGB",
   "codigoBarras": "7891234567890",
   "preco": 129.90,
   "categoriaId": 1,
-  "ativo": true
-}
-```
-
-Exemplo de resposta:
-
-```json
-{
-  "id": 1,
-  "nome": "Mouse Gamer",
-  "descricao": "Mouse gamer RGB com 6 botões",
-  "codigoBarras": "7891234567890",
-  "preco": 129.90,
-  "categoriaId": 1,
-  "categoriaNome": "Eletrônicos",
   "ativo": true
 }
 ```
 
 ---
 
-## Listar produtos
+## Listar
 
 ```http
 GET /api/produtos
@@ -384,21 +494,15 @@ GET /api/produtos
 
 ---
 
-## Buscar produto por ID
+## Buscar por ID
 
 ```http
 GET /api/produtos/{id}
 ```
 
-Exemplo:
-
-```http
-GET /api/produtos/1
-```
-
 ---
 
-## Atualizar produto
+## Atualizar
 
 ```http
 PUT /api/produtos/{id}
@@ -406,7 +510,7 @@ PUT /api/produtos/{id}
 
 ---
 
-## Excluir produto
+## Excluir
 
 ```http
 DELETE /api/produtos/{id}
@@ -414,96 +518,133 @@ DELETE /api/produtos/{id}
 
 ---
 
-# 🔗 Relacionamento entre as entidades
+# 👤 Clientes
 
-O relacionamento atual é:
+## Criar
 
-```text
-Categoria
-    │
-    │ 1
-    │
-    │ N
-    ▼
-Produto
+```http
+POST /api/clientes
 ```
 
-Uma categoria pode possuir vários produtos.
+Exemplo:
 
-Cada produto pertence a uma categoria.
-
-No banco de dados, a tabela `produtos` possui a chave estrangeira:
-
-```text
-categoria_id
-```
-
-que referencia:
-
-```text
-categorias.id
+```json
+{
+  "nome": "Maria Silva",
+  "email": "maria@email.com"
+}
 ```
 
 ---
 
-# 🏗️ Arquitetura utilizada
+## Listar
 
-O backend utiliza uma arquitetura organizada em camadas:
-
-```text
-Requisição HTTP
-      ↓
-Controller
-      ↓
-Service
-      ↓
-Repository
-      ↓
-JPA / Hibernate
-      ↓
-SQLite
+```http
+GET /api/clientes
 ```
-
-### Controller
-
-Responsável por receber as requisições HTTP e disponibilizar os endpoints REST.
-
-### Service
-
-Responsável pelas regras de negócio.
-
-### Repository
-
-Responsável pela comunicação com o banco de dados através do Spring Data JPA.
-
-### Entity
-
-Representa as tabelas do banco de dados.
-
-### DTO
-
-Define os dados recebidos e enviados pela API.
 
 ---
 
-# 🔐 Segurança
+## Buscar por ID
 
-O projeto possui a dependência do **Spring Security**.
+```http
+GET /api/clientes/{id}
+```
 
-Durante esta etapa de desenvolvimento, os endpoints estão liberados para facilitar os testes da API.
+---
 
-A implementação futura utilizará autenticação e autorização através de **JWT (JSON Web Token)**.
+## Atualizar
+
+```http
+PUT /api/clientes/{id}
+```
+
+---
+
+## Excluir
+
+```http
+DELETE /api/clientes/{id}
+```
+
+---
+
+# 🧾 Vendas
+
+## Criar
+
+```http
+POST /api/vendas
+```
+
+Exemplo:
+
+```json
+{
+  "clienteId": 1,
+  "itens": [
+    {
+      "produtoId": 1,
+      "quantidade": 2
+    },
+    {
+      "produtoId": 2,
+      "quantidade": 1
+    }
+  ]
+}
+```
+
+O backend busca automaticamente o preço atual de cada produto e calcula:
+
+```text
+preço unitário × quantidade = subtotal
+```
+
+Depois soma os subtotais para obter o valor total da venda.
+
+---
+
+## Listar
+
+```http
+GET /api/vendas
+```
+
+---
+
+## Buscar por ID
+
+```http
+GET /api/vendas/{id}
+```
+
+---
+
+## Atualizar
+
+```http
+PUT /api/vendas/{id}
+```
+
+---
+
+## Excluir
+
+```http
+DELETE /api/vendas/{id}
+```
 
 ---
 
 # 🧪 Testando a API
 
-A API pode ser testada utilizando:
+A API pode ser testada utilizando ferramentas como:
 
-* Postman
-* Insomnia
-* Bruno
-* cURL
+- Postman
+- Insomnia
+- Bruno
+- cURL
 
 URL base:
 
@@ -511,31 +652,40 @@ URL base:
 http://localhost:8082
 ```
 
-Exemplo:
+Exemplos:
 
 ```text
 http://localhost:8082/api/categorias
+http://localhost:8082/api/produtos
+http://localhost:8082/api/clientes
+http://localhost:8082/api/vendas
 ```
 
 ---
 
-# 🔮 Próximas etapas
+# ✅ Status atual
 
-O projeto ainda será expandido com:
+| Funcionalidade | Status |
+|---|---|
+| Spring Boot + Kotlin | ✅ |
+| Java 21 | ✅ |
+| SQLite | ✅ |
+| API REST | ✅ |
+| CRUD Categoria | ✅ |
+| CRUD Produto | ✅ |
+| CRUD Cliente | ✅ |
+| CRUD Venda | ✅ |
+| Relacionamentos JPA | ✅ |
+| Validação de dados | ✅ |
 
-* CRUD de Usuários
-* CRUD de Estoque
-* Autenticação com JWT
-* Autorização por perfil de usuário
-* Integração MQTT
-* ESP32
-* Sensor IoT
-* Monitoramento inteligente de estoque
-* Aplicação Mobile em Kotlin Multiplatform
-* Aplicação Web em Kotlin Multiplatform
-* Aplicação Desktop em Kotlin Multiplatform
+---
 
-A arquitetura planejada é:
+
+### MQTT
+
+O backend será conectado a um Broker MQTT e ficará inscrito no tópico utilizado pelo dispositivo IoT.
+
+Fluxo planejado:
 
 ```text
 ESP32 + Sensor
@@ -545,24 +695,34 @@ ESP32 + Sensor
  MQTT Broker
       │
       ▼
-Spring Boot + Kotlin
+Spring Boot
       │
-      ├── SQLite
-      │
-      └── REST API
-             │
-       ┌─────┼─────┐
-       ▼     ▼     ▼
-     Mobile  Web  Desktop
-          Kotlin Multiplatform
+      ▼
+SQLite / API REST
 ```
 
 ---
 
-## 👩‍💻 Projeto acadêmico
+### IoT
 
-Projeto desenvolvido como parte das atividades acadêmicas do curso de **Desenvolvimento de Software Multiplataforma**.
+O projeto utilizará um dispositivo **ESP32 programado em C++**, responsável pela leitura de um sensor e publicação das informações utilizando MQTT.
 
-O objetivo é desenvolver uma solução de **Loja Inteligente Multiplataforma**, integrando desenvolvimento backend, aplicações multiplataforma e Internet das Coisas (IoT).
+O backend será responsável por receber e processar essas informações.
 
+---
+
+# 🎓 Projeto acadêmico
+
+Projeto desenvolvido como parte do curso de **Desenvolvimento de Software Multiplataforma**.
+
+O objetivo do projeto é desenvolver uma solução de **Loja Inteligente**, integrando:
+
+- Backend
+- API REST
+- Kotlin Multiplatform
+- Internet das Coisas
+- MQTT
+- ESP32
+- Sensores
+- Autenticação e autorização
 
