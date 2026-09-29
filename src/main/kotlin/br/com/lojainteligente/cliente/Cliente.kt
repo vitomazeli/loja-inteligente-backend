@@ -4,13 +4,15 @@ import jakarta.persistence.*
 
 @Entity
 @Table(name = "clientes")
-data class Cliente(
+class Cliente(
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long? = null,
+    var id: Long? = null,
 
-    val nome: String,
+    @Column(nullable = false)
+    var nome: String = "",
 
-    val email: String
+    @Column(nullable = false, unique = true)
+    var email: String = ""
 )
