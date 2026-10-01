@@ -1,5 +1,7 @@
-```markdown
+
 # 🛒 Loja Inteligente - Backend
+
+```markdown
 
 Backend do projeto **Loja Inteligente**, desenvolvido em **Kotlin com Spring Boot**.
 
