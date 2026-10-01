@@ -1,7 +1,3 @@
-Claro — agora o README já pode refletir o estado atual do backend, com os **4 CRUDs completos** e deixando claro que **JWT e MQTT são as próximas etapas**.
-
-Você pode substituir seu `README.md` por este:
-
 ```markdown
 # 🛒 Loja Inteligente - Backend
 
