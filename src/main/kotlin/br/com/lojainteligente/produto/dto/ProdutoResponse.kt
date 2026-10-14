@@ -1,22 +1,17 @@
+
 package br.com.lojainteligente.produto.dto
 
 import java.math.BigDecimal
+import java.time.LocalDateTime
 
 data class ProdutoResponse(
-
     val id: Long?,
-
     val nome: String,
-
     val descricao: String?,
-
     val codigoBarras: String,
-
     val preco: BigDecimal,
-
     val categoriaId: Long?,
-
     val categoriaNome: String?,
-
-    val ativo: Boolean
+    val ativo: Boolean,
+    val dataCadastro: LocalDateTime
 )

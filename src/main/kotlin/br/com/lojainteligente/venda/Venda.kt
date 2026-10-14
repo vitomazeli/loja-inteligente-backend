@@ -1,3 +1,4 @@
+
 package br.com.lojainteligente.venda
 
 import br.com.lojainteligente.cliente.Cliente
@@ -28,5 +29,11 @@ class Venda(
         cascade = [CascadeType.ALL],
         orphanRemoval = true
     )
-    var itens: MutableList<ItemVenda> = mutableListOf()
+    var itens: MutableList<ItemVenda> = mutableListOf(),
+
+    @Column(nullable = false, length = 30)
+    var status: String = "PENDENTE",
+
+    @Column(length = 255)
+    var observacao: String? = null
 )

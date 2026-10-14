@@ -30,6 +30,15 @@ class VendaController(
         return service.listar()
     }
 
+
+    @GetMapping("/buscar")
+    fun buscarPorStatus(
+        @RequestParam status: String
+    ): List<VendaResponse> {
+        return service.buscarPorStatus(status)
+    }
+
+
     @GetMapping("/{id}")
     fun buscar(
         @PathVariable id: Long

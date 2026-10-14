@@ -1,3 +1,4 @@
+
 package br.com.lojainteligente.produto
 
 import br.com.lojainteligente.categoria.CategoriaRepository
@@ -6,15 +7,15 @@ import br.com.lojainteligente.produto.dto.ProdutoResponse
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
-
+import org.springframework.transaction.annotation.Transactional
 @Service
 class ProdutoService(
     private val produtoRepository: ProdutoRepository,
-    private val categoriaRepository: CategoriaRepository
+    private val categoriaRepository: CategoriaRepository,
+    private val produtoMapper: ProdutoMapper
 ) {
 
     fun criar(request: ProdutoRequest): ProdutoResponse {
-
         if (produtoRepository.existsByCodigoBarras(request.codigoBarras)) {
             throw ResponseStatusException(
                 HttpStatus.CONFLICT,
@@ -30,27 +31,18 @@ class ProdutoService(
                 )
             }
 
-        val produto = Produto(
-            nome = request.nome,
-            descricao = request.descricao,
-            codigoBarras = request.codigoBarras,
-            preco = request.preco,
-            categoria = categoria,
-            ativo = request.ativo
-        )
-
+        val produto = produtoMapper.paraEntidade(request, categoria)
         val produtoSalvo = produtoRepository.save(produto)
 
-        return converterParaResponse(produtoSalvo)
+        return produtoMapper.paraResponse(produtoSalvo)
     }
 
     fun listar(): List<ProdutoResponse> {
         return produtoRepository.findAll()
-            .map { converterParaResponse(it) }
+            .map { produtoMapper.paraResponse(it) }
     }
 
     fun buscarPorId(id: Long): ProdutoResponse {
-
         val produto = produtoRepository.findById(id)
             .orElseThrow {
                 ResponseStatusException(
@@ -59,14 +51,21 @@ class ProdutoService(
                 )
             }
 
-        return converterParaResponse(produto)
+        return produtoMapper.paraResponse(produto)
     }
+
+
+    @Transactional(readOnly = true)
+    fun buscarPorNome(nome: String): List<ProdutoResponse> {
+        return produtoRepository.buscarPorNome(nome)
+            .map { produtoMapper.paraResponse(it) }
+    }
+
 
     fun atualizar(
         id: Long,
         request: ProdutoRequest
     ): ProdutoResponse {
-
         val produto = produtoRepository.findById(id)
             .orElseThrow {
                 ResponseStatusException(
@@ -104,11 +103,10 @@ class ProdutoService(
 
         val produtoAtualizado = produtoRepository.save(produto)
 
-        return converterParaResponse(produtoAtualizado)
+        return produtoMapper.paraResponse(produtoAtualizado)
     }
 
     fun excluir(id: Long) {
-
         if (!produtoRepository.existsById(id)) {
             throw ResponseStatusException(
                 HttpStatus.NOT_FOUND,
@@ -117,21 +115,5 @@ class ProdutoService(
         }
 
         produtoRepository.deleteById(id)
-    }
-
-    private fun converterParaResponse(
-        produto: Produto
-    ): ProdutoResponse {
-
-        return ProdutoResponse(
-            id = produto.id,
-            nome = produto.nome,
-            descricao = produto.descricao,
-            codigoBarras = produto.codigoBarras,
-            preco = produto.preco,
-            categoriaId = produto.categoria?.id,
-            categoriaNome = produto.categoria?.nome,
-            ativo = produto.ativo
-        )
     }
 }

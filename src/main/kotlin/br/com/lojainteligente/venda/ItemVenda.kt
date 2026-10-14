@@ -1,3 +1,4 @@
+
 package br.com.lojainteligente.venda
 
 import br.com.lojainteligente.produto.Produto
@@ -32,5 +33,8 @@ class ItemVenda(
     var precoUnitario: BigDecimal = BigDecimal.ZERO,
 
     @Column(nullable = false, precision = 12, scale = 2)
-    var subtotal: BigDecimal = BigDecimal.ZERO
+    var subtotal: BigDecimal = BigDecimal.ZERO,
+
+    @Column(nullable = false, precision = 10, scale = 2)
+    var desconto: BigDecimal = BigDecimal.ZERO
 )

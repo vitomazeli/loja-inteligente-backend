@@ -1,3 +1,4 @@
+
 package br.com.lojainteligente.categoria
 
 import br.com.lojainteligente.categoria.dto.CategoriaRequest
@@ -8,29 +9,23 @@ import org.springframework.web.server.ResponseStatusException
 
 @Service
 class CategoriaService(
-    private val categoriaRepository: CategoriaRepository
+    private val categoriaRepository: CategoriaRepository,
+    private val categoriaMapper: CategoriaMapper
 ) {
 
     fun criar(request: CategoriaRequest): CategoriaResponse {
-
-        val categoria = Categoria(
-            nome = request.nome,
-            descricao = request.descricao,
-            ativo = request.ativo
-        )
-
+        val categoria = categoriaMapper.paraEntidade(request)
         val categoriaSalva = categoriaRepository.save(categoria)
 
-        return converterParaResponse(categoriaSalva)
+        return categoriaMapper.paraResponse(categoriaSalva)
     }
 
     fun listar(): List<CategoriaResponse> {
         return categoriaRepository.findAll()
-            .map { converterParaResponse(it) }
+            .map { categoriaMapper.paraResponse(it) }
     }
 
     fun buscarPorId(id: Long): CategoriaResponse {
-
         val categoria = categoriaRepository.findById(id)
             .orElseThrow {
                 ResponseStatusException(
@@ -39,14 +34,13 @@ class CategoriaService(
                 )
             }
 
-        return converterParaResponse(categoria)
+        return categoriaMapper.paraResponse(categoria)
     }
 
     fun atualizar(
         id: Long,
         request: CategoriaRequest
     ): CategoriaResponse {
-
         val categoria = categoriaRepository.findById(id)
             .orElseThrow {
                 ResponseStatusException(
@@ -58,14 +52,14 @@ class CategoriaService(
         categoria.nome = request.nome
         categoria.descricao = request.descricao
         categoria.ativo = request.ativo
+        categoria.ordemExibicao = request.ordemExibicao
 
         val categoriaAtualizada = categoriaRepository.save(categoria)
 
-        return converterParaResponse(categoriaAtualizada)
+        return categoriaMapper.paraResponse(categoriaAtualizada)
     }
 
     fun excluir(id: Long) {
-
         if (!categoriaRepository.existsById(id)) {
             throw ResponseStatusException(
                 HttpStatus.NOT_FOUND,
@@ -74,17 +68,5 @@ class CategoriaService(
         }
 
         categoriaRepository.deleteById(id)
-    }
-
-    private fun converterParaResponse(
-        categoria: Categoria
-    ): CategoriaResponse {
-
-        return CategoriaResponse(
-            id = categoria.id,
-            nome = categoria.nome,
-            descricao = categoria.descricao,
-            ativo = categoria.ativo
-        )
     }
 }
