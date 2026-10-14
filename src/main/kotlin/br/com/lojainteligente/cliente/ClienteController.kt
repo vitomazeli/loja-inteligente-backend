@@ -1,31 +1,24 @@
+
 package br.com.lojainteligente.cliente
 
-<<<<<<< HEAD
-=======
 import br.com.lojainteligente.cliente.dto.ClienteRequest
 import br.com.lojainteligente.cliente.dto.ClienteResponse
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
->>>>>>> master
 import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/api/clientes")
 class ClienteController(
-    private val service: ClienteService
+    private val clienteService: ClienteService
 ) {
 
-<<<<<<< HEAD
-    @GetMapping
-    fun listar(): List<Cliente> {
-=======
     @PostMapping
     fun criar(
         @Valid @RequestBody request: ClienteRequest
     ): ResponseEntity<ClienteResponse> {
-
-        val cliente = service.criar(request)
+        val cliente = clienteService.criar(request)
 
         return ResponseEntity
             .status(HttpStatus.CREATED)
@@ -34,29 +27,21 @@ class ClienteController(
 
     @GetMapping
     fun listar(): List<ClienteResponse> {
->>>>>>> master
-        return service.listar()
+        return clienteService.listar()
     }
 
     @GetMapping("/{id}")
-<<<<<<< HEAD
-    fun buscar(@PathVariable id: Long): Cliente? {
-        return service.buscarPorId(id)
-    }
-
-    @PostMapping
-    fun criar(@RequestBody cliente: Cliente): Cliente {
-        return service.salvar(cliente)
-    }
-
-    @DeleteMapping("/{id}")
-    fun excluir(@PathVariable id: Long) {
-        service.excluir(id)
-=======
-    fun buscar(
+    fun buscarPorId(
         @PathVariable id: Long
     ): ClienteResponse {
-        return service.buscarPorId(id)
+        return clienteService.buscarPorId(id)
+    }
+
+    @GetMapping("/buscar")
+    fun buscarPorNome(
+        @RequestParam nome: String
+    ): List<ClienteResponse> {
+        return clienteService.buscarPorNome(nome)
     }
 
     @PutMapping("/{id}")
@@ -64,17 +49,15 @@ class ClienteController(
         @PathVariable id: Long,
         @Valid @RequestBody request: ClienteRequest
     ): ClienteResponse {
-        return service.atualizar(id, request)
+        return clienteService.atualizar(id, request)
     }
 
     @DeleteMapping("/{id}")
     fun excluir(
         @PathVariable id: Long
     ): ResponseEntity<Void> {
-
-        service.excluir(id)
+        clienteService.excluir(id)
 
         return ResponseEntity.noContent().build()
->>>>>>> master
     }
 }

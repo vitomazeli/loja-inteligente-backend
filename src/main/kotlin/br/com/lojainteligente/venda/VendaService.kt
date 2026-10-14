@@ -1,8 +1,10 @@
+
 package br.com.lojainteligente.venda
 
 import br.com.lojainteligente.cliente.ClienteRepository
 import br.com.lojainteligente.produto.ProdutoRepository
-import br.com.lojainteligente.venda.dto.*
+import br.com.lojainteligente.venda.dto.VendaRequest
+import br.com.lojainteligente.venda.dto.VendaResponse
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -13,12 +15,12 @@ import java.math.BigDecimal
 class VendaService(
     private val vendaRepository: VendaRepository,
     private val clienteRepository: ClienteRepository,
-    private val produtoRepository: ProdutoRepository
+    private val produtoRepository: ProdutoRepository,
+    private val vendaMapper: VendaMapper
 ) {
 
     @Transactional
     fun criar(request: VendaRequest): VendaResponse {
-
         val cliente = clienteRepository.findById(request.clienteId)
             .orElseThrow {
                 ResponseStatusException(
@@ -27,58 +29,34 @@ class VendaService(
                 )
             }
 
-        val venda = Venda(
-            cliente = cliente
-        )
+        val venda = vendaMapper.paraEntidade(request, cliente)
 
-        var totalVenda = BigDecimal.ZERO
-
-        request.itens.forEach { itemRequest ->
-
-            val produto = produtoRepository.findById(itemRequest.produtoId)
-                .orElseThrow {
-                    ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Produto ${itemRequest.produtoId} não encontrado"
-                    )
-                }
-
-            val subtotal = produto.preco.multiply(
-                BigDecimal.valueOf(itemRequest.quantidade.toLong())
-            )
-
-            val item = ItemVenda(
-                venda = venda,
-                produto = produto,
-                quantidade = itemRequest.quantidade,
-                precoUnitario = produto.preco,
-                subtotal = subtotal
-            )
-
-            venda.itens.add(item)
-
-            totalVenda = totalVenda.add(subtotal)
-        }
-
-        venda.total = totalVenda
+        adicionarItens(venda, request)
+        recalcularTotal(venda)
 
         val vendaSalva = vendaRepository.save(venda)
 
-        return converterParaResponse(vendaSalva)
+        return vendaMapper.paraResponse(vendaSalva)
     }
 
     @Transactional(readOnly = true)
     fun listar(): List<VendaResponse> {
         return vendaRepository.findAll()
-            .map { converterParaResponse(it) }
+            .map { vendaMapper.paraResponse(it) }
     }
+
+
+    @Transactional(readOnly = true)
+    fun buscarPorStatus(status: String): List<VendaResponse> {
+        return vendaRepository.buscarPorStatus(status)
+            .map { vendaMapper.paraResponse(it) }
+    }
+
 
     @Transactional(readOnly = true)
     fun buscarPorId(id: Long): VendaResponse {
-
         val venda = buscarVenda(id)
-
-        return converterParaResponse(venda)
+        return vendaMapper.paraResponse(venda)
     }
 
     @Transactional
@@ -86,7 +64,6 @@ class VendaService(
         id: Long,
         request: VendaRequest
     ): VendaResponse {
-
         val venda = buscarVenda(id)
 
         val cliente = clienteRepository.findById(request.clienteId)
@@ -98,13 +75,30 @@ class VendaService(
             }
 
         venda.cliente = cliente
+        venda.observacao =
+            request.observacao?.trim()?.takeIf { it.isNotEmpty() }
 
         venda.itens.clear()
 
-        var totalVenda = BigDecimal.ZERO
+        adicionarItens(venda, request)
+        recalcularTotal(venda)
 
+        val vendaAtualizada = vendaRepository.save(venda)
+
+        return vendaMapper.paraResponse(vendaAtualizada)
+    }
+
+    @Transactional
+    fun excluir(id: Long) {
+        val venda = buscarVenda(id)
+        vendaRepository.delete(venda)
+    }
+
+    private fun adicionarItens(
+        venda: Venda,
+        request: VendaRequest
+    ) {
         request.itens.forEach { itemRequest ->
-
             val produto = produtoRepository.findById(itemRequest.produtoId)
                 .orElseThrow {
                     ResponseStatusException(
@@ -113,40 +107,23 @@ class VendaService(
                     )
                 }
 
-            val subtotal = produto.preco.multiply(
-                BigDecimal.valueOf(itemRequest.quantidade.toLong())
-            )
-
-            val item = ItemVenda(
+            val item = vendaMapper.paraItemEntidade(
                 venda = venda,
                 produto = produto,
-                quantidade = itemRequest.quantidade,
-                precoUnitario = produto.preco,
-                subtotal = subtotal
+                request = itemRequest
             )
 
             venda.itens.add(item)
-
-            totalVenda = totalVenda.add(subtotal)
         }
-
-        venda.total = totalVenda
-
-        val vendaAtualizada = vendaRepository.save(venda)
-
-        return converterParaResponse(vendaAtualizada)
     }
 
-    @Transactional
-    fun excluir(id: Long) {
-
-        val venda = buscarVenda(id)
-
-        vendaRepository.delete(venda)
+    private fun recalcularTotal(venda: Venda) {
+        venda.total = venda.itens.fold(BigDecimal.ZERO) { acumulado, item ->
+            acumulado.add(item.subtotal.subtract(item.desconto))
+        }
     }
 
     private fun buscarVenda(id: Long): Venda {
-
         return vendaRepository.findById(id)
             .orElseThrow {
                 ResponseStatusException(
@@ -154,30 +131,5 @@ class VendaService(
                     "Venda não encontrada"
                 )
             }
-    }
-
-    private fun converterParaResponse(
-        venda: Venda
-    ): VendaResponse {
-
-        return VendaResponse(
-            id = venda.id,
-            clienteId = venda.cliente?.id,
-            clienteNome = venda.cliente?.nome,
-            dataVenda = venda.dataVenda,
-            total = venda.total,
-
-            itens = venda.itens.map { item ->
-
-                ItemVendaResponse(
-                    id = item.id,
-                    produtoId = item.produto?.id,
-                    produtoNome = item.produto?.nome,
-                    quantidade = item.quantidade,
-                    precoUnitario = item.precoUnitario,
-                    subtotal = item.subtotal
-                )
-            }
-        )
     }
 }

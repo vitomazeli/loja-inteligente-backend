@@ -1,17 +1,15 @@
+
 package br.com.lojainteligente.cliente
 
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Query
+import org.springframework.data.repository.query.Param
 
-<<<<<<< HEAD
-interface ClienteRepository : JpaRepository<Cliente, Long>
-=======
 interface ClienteRepository : JpaRepository<Cliente, Long> {
 
-    fun existsByEmail(email: String): Boolean
-
-    fun existsByEmailAndIdNot(
-        email: String,
-        id: Long
-    ): Boolean
+    @Query(
+        "SELECT c FROM Cliente c " +
+                "WHERE LOWER(c.nome) LIKE LOWER(CONCAT('%', :nome, '%'))"
+    )
+    fun buscarPorNome(@Param("nome") nome: String): List<Cliente>
 }
->>>>>>> master

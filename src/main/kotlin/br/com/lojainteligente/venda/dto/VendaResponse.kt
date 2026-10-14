@@ -1,3 +1,4 @@
+
 package br.com.lojainteligente.venda.dto
 
 import java.math.BigDecimal
@@ -9,5 +10,7 @@ data class VendaResponse(
     val clienteNome: String?,
     val dataVenda: LocalDateTime,
     val total: BigDecimal,
+    val status: String,
+    val observacao: String?,
     val itens: List<ItemVendaResponse>
 )

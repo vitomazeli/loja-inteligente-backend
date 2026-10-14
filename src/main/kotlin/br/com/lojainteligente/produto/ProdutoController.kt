@@ -30,6 +30,15 @@ class ProdutoController(
         return produtoService.listar()
     }
 
+    @GetMapping("/buscar")
+    fun buscarPorNome(
+        @RequestParam nome: String
+    ): List<ProdutoResponse> {
+        return produtoService.buscarPorNome(nome)
+    }
+
+
+
     @GetMapping("/{id}")
     fun buscarPorId(
         @PathVariable id: Long

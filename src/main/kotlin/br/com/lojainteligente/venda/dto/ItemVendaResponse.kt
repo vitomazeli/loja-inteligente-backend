@@ -1,3 +1,4 @@
+
 package br.com.lojainteligente.venda.dto
 
 import java.math.BigDecimal
@@ -8,5 +9,6 @@ data class ItemVendaResponse(
     val produtoNome: String?,
     val quantidade: Int,
     val precoUnitario: BigDecimal,
-    val subtotal: BigDecimal
+    val subtotal: BigDecimal,
+    val desconto: BigDecimal
 )
