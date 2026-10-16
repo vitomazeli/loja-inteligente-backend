@@ -35,6 +35,9 @@ dependencies {
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     implementation("org.xerial:sqlite-jdbc:3.50.3.0")
     implementation("org.hibernate.orm:hibernate-community-dialects")
+	implementation("io.jsonwebtoken:jjwt-api:0.13.0")
+	runtimeOnly("io.jsonwebtoken:jjwt-impl:0.13.0")
+	runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.13.0")
 
 }
 
