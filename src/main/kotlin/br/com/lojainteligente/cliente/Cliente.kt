@@ -1,6 +1,7 @@
 package br.com.lojainteligente.cliente
 
 import jakarta.persistence.*
+import java.time.LocalDateTime
 
 @Entity
 @Table(name = "clientes")
