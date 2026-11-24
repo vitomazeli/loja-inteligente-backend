@@ -8,10 +8,13 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
+import br.com.lojainteligente.auth.CustomUserDetailsService
+import org.springframework.security.core.userdetails.UsernameNotFoundException
 
 @Component
 class JwtAuthenticationFilter(
-    private val jwtService: JwtService
+    private val jwtService: JwtService,
+    private val customUserDetailsService: CustomUserDetailsService
 ) : OncePerRequestFilter() {
 
     override fun doFilterInternal(
@@ -33,10 +36,24 @@ class JwtAuthenticationFilter(
 
             val email = jwtService.extrairEmail(token)
 
+            val usuario = try {
+                customUserDetailsService.loadUserByUsername(email)
+            } catch (e: UsernameNotFoundException) {
+                SecurityContextHolder.clearContext()
+                filterChain.doFilter(request, response)
+                return
+            }
+
+            if (!usuario.isEnabled) {
+                SecurityContextHolder.clearContext()
+                filterChain.doFilter(request, response)
+                return
+            }
+
             val auth = UsernamePasswordAuthenticationToken(
-                email,
+                usuario,
                 null,
-                emptyList()
+                usuario.authorities
             )
 
             auth.details =

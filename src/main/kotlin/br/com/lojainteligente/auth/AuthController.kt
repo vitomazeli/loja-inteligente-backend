@@ -12,13 +12,17 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.security.authentication.AuthenticationManager
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.AuthenticationException
 
 @RestController
 @RequestMapping("/auth")
 class AuthController(
     private val usuarioRepository: UsuarioRepository,
     private val jwtService: JwtService,
-    private val passwordEncoder: PasswordEncoder
+    private val passwordEncoder: PasswordEncoder,
+    private val authenticationManager: AuthenticationManager
 ) {
 
     @PostMapping("/register")
@@ -29,7 +33,8 @@ class AuthController(
         if (
             request.nome.isBlank() ||
             request.email.isBlank() ||
-            request.senha.isBlank()
+            request.senha.isBlank() ||
+            request.confsenha.isBlank()
         ) {
             return ResponseEntity
                 .badRequest()
@@ -48,6 +53,12 @@ class AuthController(
             return ResponseEntity
                 .status(HttpStatus.CONFLICT)
                 .body("Este e-mail já está cadastrado.")
+        }
+
+        if (request.senha != request.confsenha) {
+            return ResponseEntity
+                .badRequest()
+                .body("As senhas não coincidem.")
         }
 
 
@@ -82,25 +93,22 @@ class AuthController(
 
         val email = request.email.trim().lowercase()
 
-        val usuario = usuarioRepository.findByEmail(email)
-            ?: return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
-                .build()
+        return try {
+            val authentication = authenticationManager.authenticate(
+                UsernamePasswordAuthenticationToken(
+                    email,
+                    request.senha
+                )
+            )
 
-        if (!passwordEncoder.matches(request.senha, usuario.senha)) {
-            return ResponseEntity
+            val token = jwtService.gerarToken(authentication.name)
+
+            ResponseEntity.ok(LoginResponse(token))
+
+        } catch (e: AuthenticationException) {
+            ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
                 .build()
         }
-
-        if (!usuario.ativo) {
-            return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
-                .build()
-        }
-
-        val token = jwtService.gerarToken(usuario.email)
-
-        return ResponseEntity.ok(LoginResponse(token))
     }
 }

@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
 import org.springframework.transaction.annotation.Transactional
 @Service
+@Transactional
 class ProdutoService(
     private val produtoRepository: ProdutoRepository,
     private val categoriaRepository: CategoriaRepository,
@@ -37,11 +38,13 @@ class ProdutoService(
         return produtoMapper.paraResponse(produtoSalvo)
     }
 
+    @Transactional(readOnly = true)
     fun listar(): List<ProdutoResponse> {
         return produtoRepository.findAll()
             .map { produtoMapper.paraResponse(it) }
     }
 
+    @Transactional(readOnly = true)
     fun buscarPorId(id: Long): ProdutoResponse {
         val produto = produtoRepository.findById(id)
             .orElseThrow {
@@ -111,6 +114,13 @@ class ProdutoService(
             throw ResponseStatusException(
                 HttpStatus.NOT_FOUND,
                 "Produto não encontrado"
+            )
+        }
+
+        if (produtoRepository.contarVinculosEmVendas(id) > 0) {
+            throw ResponseStatusException(
+                HttpStatus.CONFLICT,
+                "Não é possível excluir um produto que possui histórico de vendas."
             )
         }
 

@@ -5,4 +5,8 @@ interface UsuarioRepository : JpaRepository<Usuario, Long> {
 
     fun findByEmail(email: String): Usuario?
 
+    fun countByPerfilAndAtivo(perfil: String, ativo: Boolean): Long
+
+    fun existsByEmailAndIdNot(email: String, id: Long): Boolean
+
 }

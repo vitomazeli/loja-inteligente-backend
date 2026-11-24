@@ -6,11 +6,13 @@ import br.com.lojainteligente.categoria.dto.CategoriaResponse
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
+import br.com.lojainteligente.produto.ProdutoRepository
 
 @Service
 class CategoriaService(
     private val categoriaRepository: CategoriaRepository,
-    private val categoriaMapper: CategoriaMapper
+    private val categoriaMapper: CategoriaMapper,
+    private val produtoRepository: ProdutoRepository
 ) {
 
     fun criar(request: CategoriaRequest): CategoriaResponse {
@@ -64,6 +66,13 @@ class CategoriaService(
             throw ResponseStatusException(
                 HttpStatus.NOT_FOUND,
                 "Categoria não encontrada"
+            )
+
+        }
+        if (produtoRepository.existsByCategoriaId(id)) {
+            throw ResponseStatusException(
+                HttpStatus.CONFLICT,
+                "Não é possível excluir uma categoria que possui produtos vinculados."
             )
         }
 
