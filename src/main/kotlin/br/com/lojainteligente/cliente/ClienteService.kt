@@ -6,31 +6,40 @@ import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
+import br.com.lojainteligente.venda.VendaRepository
 
 @Service
 class ClienteService(
     private val clienteRepository: ClienteRepository,
-    private val clienteMapper: ClienteMapper
+    private val clienteMapper: ClienteMapper,
+    private val vendaRepository: VendaRepository
 ) {
 
     @Transactional
     fun criar(request: ClienteRequest): ClienteResponse {
         val cliente = clienteMapper.toEntity(request)
+
+        if (clienteRepository.existsByEmail(cliente.email)) {
+            throw ResponseStatusException(
+                HttpStatus.CONFLICT,
+                "Já existe um cliente cadastrado com este email"
+            )
+        }
+
         return clienteMapper.toResponse(
             clienteRepository.save(cliente)
         )
     }
 
     @Transactional(readOnly = true)
-    fun listar(): List<ClienteResponse> {
-        return clienteRepository.findAll()
-            .map { clienteMapper.toResponse(it) }
-    }
+    fun listar(): List<ClienteResponse> =
+        clienteRepository.findAll().map {
+            clienteMapper.toResponse(it)
+        }
 
     @Transactional(readOnly = true)
-    fun buscarPorId(id: Long): ClienteResponse {
-        return clienteMapper.toResponse(buscarEntidade(id))
-    }
+    fun buscarPorId(id: Long): ClienteResponse =
+        clienteMapper.toResponse(buscarEntidade(id))
 
     @Transactional
     fun atualizar(
@@ -38,6 +47,18 @@ class ClienteService(
         request: ClienteRequest
     ): ClienteResponse {
         val cliente = buscarEntidade(id)
+
+        if (clienteRepository.existsByEmailAndIdNot(
+                request.email.trim().lowercase(),
+                id
+            )
+        ) {
+            throw ResponseStatusException(
+                HttpStatus.CONFLICT,
+                "Já existe um cliente cadastrado com este email"
+            )
+        }
+
         clienteMapper.atualizar(cliente, request)
 
         return clienteMapper.toResponse(
@@ -48,21 +69,28 @@ class ClienteService(
     @Transactional
     fun excluir(id: Long) {
         val cliente = buscarEntidade(id)
+
+        if (vendaRepository.existsByClienteId(id)) {
+            throw ResponseStatusException(
+                HttpStatus.CONFLICT,
+                "Não é possível excluir um cliente que possui vendas vinculadas."
+            )
+        }
+
         clienteRepository.delete(cliente)
     }
 
     @Transactional(readOnly = true)
-    fun buscarPorNome(nome: String): List<ClienteResponse> {
-        return clienteRepository.buscarPorNome(nome)
-            .map { clienteMapper.toResponse(it) }
-    }
+    fun buscarPorNome(nome: String): List<ClienteResponse> =
+        clienteRepository.buscarPorNome(nome).map {
+            clienteMapper.toResponse(it)
+        }
 
-    private fun buscarEntidade(id: Long): Cliente {
-        return clienteRepository.findById(id).orElseThrow {
+    private fun buscarEntidade(id: Long): Cliente =
+        clienteRepository.findById(id).orElseThrow {
             ResponseStatusException(
                 HttpStatus.NOT_FOUND,
                 "Cliente não encontrado"
             )
         }
-    }
 }

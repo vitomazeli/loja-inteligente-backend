@@ -18,11 +18,13 @@ class ProdutoController(
         @Valid @RequestBody request: ProdutoRequest
     ): ResponseEntity<ProdutoResponse> {
 
+
         val produto = produtoService.criar(request)
 
         return ResponseEntity
             .status(HttpStatus.CREATED)
             .body(produto)
+        
     }
 
     @GetMapping

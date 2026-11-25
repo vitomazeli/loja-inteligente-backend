@@ -101,11 +101,19 @@ class VendaService(
         request.itens.forEach { itemRequest ->
             val produto = produtoRepository.findById(itemRequest.produtoId)
                 .orElseThrow {
+
                     ResponseStatusException(
                         HttpStatus.NOT_FOUND,
                         "Produto ${itemRequest.produtoId} não encontrado"
                     )
                 }
+
+            if (!produto.ativo) {
+                throw ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Não é possível vender um produto inativo."
+                )
+            }
 
             val item = vendaMapper.paraItemEntidade(
                 venda = venda,

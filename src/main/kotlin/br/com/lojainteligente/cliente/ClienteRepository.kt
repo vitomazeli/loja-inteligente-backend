@@ -11,4 +11,7 @@ interface ClienteRepository : JpaRepository<Cliente, Long> {
                 "WHERE LOWER(c.nome) LIKE LOWER(CONCAT('%', :nome, '%'))"
     )
     fun buscarPorNome(@Param("nome") nome: String): List<Cliente>
+    fun existsByEmail(email: String): Boolean
+
+    fun existsByEmailAndIdNot(email: String, id: Long): Boolean
 }

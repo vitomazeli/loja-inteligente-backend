@@ -11,7 +11,7 @@ class ClienteMapper {
     fun toEntity(request: ClienteRequest): Cliente {
         return Cliente(
             nome = request.nome.trim(),
-            email = request.email.trim(),
+            email = request.email.trim().lowercase(),
             telefone = request.telefone?.trim()?.takeIf { it.isNotEmpty() },
             ativo = request.ativo
         )
@@ -22,7 +22,7 @@ class ClienteMapper {
         request: ClienteRequest
     ): Cliente {
         cliente.nome = request.nome.trim()
-        cliente.email = request.email.trim()
+        cliente.email = request.email.trim().lowercase()
         cliente.telefone =
             request.telefone?.trim()?.takeIf { it.isNotEmpty() }
         cliente.ativo = request.ativo
