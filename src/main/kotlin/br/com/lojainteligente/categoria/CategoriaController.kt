@@ -38,6 +38,13 @@ class CategoriaController(
         return categoriaService.buscarPorId(id)
     }
 
+    @GetMapping("/buscar")
+    fun buscarPorNome(
+        @RequestParam nome: String
+    ): List<CategoriaResponse> {
+        return categoriaService.buscarPorNome(nome)
+    }
+
     @PutMapping("/{id}")
     fun atualizar(
         @PathVariable id: Long,

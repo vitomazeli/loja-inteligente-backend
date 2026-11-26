@@ -60,12 +60,20 @@ class SecurityConfiguration(
                 it
                     .requestMatchers("/auth/**").permitAll()
 
+                    // Swagger: acesso público
+                    .requestMatchers(
+                        "/swagger-ui/**",
+                        "/swagger-ui.html",
+                        "/v3/api-docs/**"
+                    ).permitAll()
 
+                    // Usuários: somente ADMIN
                     .requestMatchers(
                         "/api/usuarios",
                         "/api/usuarios/**"
                     ).hasRole("ADMIN")
 
+                    // Demais rotas: exigem autenticação
                     .anyRequest().authenticated()
             }
             .authenticationProvider(authenticationProvider())

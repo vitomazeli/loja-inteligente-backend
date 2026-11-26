@@ -2,11 +2,13 @@ package br.com.lojainteligente.cliente
 
 import br.com.lojainteligente.cliente.dto.ClienteRequest
 import br.com.lojainteligente.cliente.dto.ClienteResponse
+import br.com.lojainteligente.util.normalizarTexto
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
 import br.com.lojainteligente.venda.VendaRepository
+import br.com.lojainteligente.util.normalizarTexto
 
 @Service
 class ClienteService(
@@ -80,12 +82,13 @@ class ClienteService(
         clienteRepository.delete(cliente)
     }
 
-    @Transactional(readOnly = true)
-    fun buscarPorNome(nome: String): List<ClienteResponse> =
-        clienteRepository.buscarPorNome(nome).map {
-            clienteMapper.toResponse(it)
-        }
-
+    @Transactional
+    fun buscarPorNome(nome: String): List<ClienteResponse> {
+        val nomeNormalizado = normalizarTexto(nome)
+        return clienteRepository.findAll()
+            .filter { normalizarTexto(it.nome).contains(nomeNormalizado) }
+            .map { clienteMapper.toResponse(it) }
+    }
     private fun buscarEntidade(id: Long): Cliente =
         clienteRepository.findById(id).orElseThrow {
             ResponseStatusException(

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.AuthenticationException
+import br.com.lojainteligente.auth.dto.ErroResponse
 
 @RestController
 @RequestMapping("/auth")
@@ -89,7 +90,7 @@ class AuthController(
     @PostMapping("/login")
     fun login(
         @RequestBody request: LoginRequest
-    ): ResponseEntity<LoginResponse> {
+    ): ResponseEntity<Any> {
 
         val email = request.email.trim().lowercase()
 
@@ -108,7 +109,7 @@ class AuthController(
         } catch (e: AuthenticationException) {
             ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
-                .build()
+                .body(ErroResponse("E-mail ou senha incorretos."))
         }
     }
 }

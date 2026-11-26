@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
 import br.com.lojainteligente.produto.ProdutoRepository
+import br.com.lojainteligente.util.normalizarTexto
 
 @Service
 class CategoriaService(
@@ -37,6 +38,14 @@ class CategoriaService(
             }
 
         return categoriaMapper.paraResponse(categoria)
+    }
+
+    fun buscarPorNome(nome: String): List<CategoriaResponse> {
+        val nomeNormalizado = normalizarTexto(nome)
+        return categoriaRepository.findAll()
+            .filter { normalizarTexto(it.nome).contains(nomeNormalizado)}
+            .map { categoriaMapper.paraResponse(it) }
+
     }
 
     fun atualizar(

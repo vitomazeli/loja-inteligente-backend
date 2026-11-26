@@ -8,6 +8,9 @@ import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
 import org.springframework.transaction.annotation.Transactional
+import br.com.lojainteligente.util.normalizarTexto
+
+
 @Service
 @Transactional
 class ProdutoService(
@@ -60,7 +63,9 @@ class ProdutoService(
 
     @Transactional(readOnly = true)
     fun buscarPorNome(nome: String): List<ProdutoResponse> {
-        return produtoRepository.buscarPorNome(nome)
+        val nomeNormalizado = normalizarTexto(nome)
+        return produtoRepository.findAll()
+            .filter { normalizarTexto(it.nome).contains(nomeNormalizado)}
             .map { produtoMapper.paraResponse(it) }
     }
 
